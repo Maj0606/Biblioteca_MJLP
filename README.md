@@ -1,2 +1,2 @@
 # Biblioteca_MJLP
-Creación del repositodrio del sistema de una bilioteca
+Creación del repositorio del sistema de una bilioteca
