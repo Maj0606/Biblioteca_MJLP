@@ -1,3 +1,4 @@
+from isbnlib import meta, canonical, is_isbn10, is_isbn13
 from datetime import date, timedelta
 
 # Listas principales del sistema
@@ -41,12 +42,41 @@ def buscar_libro():
     print("2. Buscar por autor")
     opcion = input("Seleccione una opcion: ")
     if opcion == "1":
-        dato = input("Ingrese el ISBN: ").strip()
+        isbn_ingresado = input("Ingrese el ISBN: ").strip()
+        # Limpiar el ISBN para facilitar su validacion
+        isbn = canonical(isbn_ingresado)
+        # Validar que sea un ISBN correcto
+        if not (is_isbn10(isbn) or is_isbn13(isbn)):
+            print("El ISBN ingresado no es valido.")
+            return
+        # Buscar primero en los libros registrados localmente
         for libro in libros:
-            if libro["ISBN"] == dato:
+            if canonical(libro["ISBN"]) == isbn:
+                print("\nLibro encontrado en la biblioteca:")
                 mostrar_libro(libro)
                 return
-        print("No se encontro el libro.")
+        # Consultar informacion externa con isbnlib
+        print("\nConsultando informacion del libro...")
+        try:
+            datos = meta(isbn)
+            if not datos:
+                print("No se encontro informacion para ese ISBN.")
+                return
+            print("\n--- INFORMACION DEL LIBRO ---")
+            print("ISBN:", isbn)
+            print("Titulo:", datos.get("Title", "No disponible"))
+            autores = datos.get("Authors", [])
+            if isinstance(autores, list):
+                autores = ", ".join(autores)
+            print("Autor(es):", autores or "No disponible")
+            print("Editorial:", datos.get("Publisher", "No disponible"))
+            print("Anio:", datos.get("Year", "No disponible"))
+            print("\nEste libro aun no esta registrado")
+            print("en la biblioteca local.")
+        except Exception as error:
+            print("No se pudo consultar el servicio externo.")
+            print("Verifica tu conexion a Internet.")
+            print("Detalle:", error)
     elif opcion == "2":
         autor = input("Ingrese el nombre del autor: ").strip().lower()
         encontrado = False
